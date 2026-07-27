@@ -18,12 +18,24 @@ jobs:
           - os: ubuntu-latest
             platform: linux-x86_64
             artifact-name: linux-x86_64
+          - os: ubuntu-24.04-arm
+            platform: linux-aarch64
+            artifact-name: linux-aarch64
           - os: macos-latest
             platform: macos-arm
             artifact-name: macos-arm
+          - os: macos-latest
+            platform: macos-intel
+            artifact-name: macos-intel
+            target-arch: x86_64
           - os: windows-latest
             platform: windows
             artifact-name: windows
+          - os: ubuntu-24.04
+            platform: wasm
+            artifact-name: wasm
+            target-platform: wasm
+            artifact-path: packages/*.zip
 
     steps:
       - name: Checkout repository
@@ -35,6 +47,8 @@ jobs:
         id: score
         uses: ossia/actions/custom-score-build@master
         with:
+          target-arch: ${{ matrix.target-arch || '' }}
+          target-platform: ${{ matrix.target-platform || '' }}
           cmake-options: >
             -DSCORE_ENABLED_ADDONS=score-addon-ndi
             -DSCORE_DISABLE_PLUGINS=score-plugin-avnd,score-plugin-clap,score-plugin-controlsurface,score-plugin-faust,score-plugin-jit,score-plugin-lv2,score-plugin-mapping,score-plugin-nodal,score-plugin-packagemanager,score-plugin-pd,score-plugin-recording,score-plugin-remotecontrol,score-plugin-spline,score-plugin-spline3d,score-plugin-threedim,score-plugin-vst,score-plugin-vst3,score-plugin-ysfx
@@ -74,41 +88,8 @@ jobs:
       - name: Upload packages
         uses: actions/upload-artifact@v4
         with:
-          name: domeportpro-basic-${{ matrix.artifact-name }}
-          path: packages/
-          retention-days: 30
-
-      - name: Package custom ossia score app
-        uses: ossia/actions/package-custom-app@master
-        with:
-          app-name: "Domeport Pro"
-          qml-files: "qml"
-          # Optional: Add your score file here
-          score-file: "score/app.score"
-          score-build-id: ${{ steps.score.outputs.artifact-id }}
-          platforms: "${{ matrix.platform }}"
-          # App metadata
-          app-organization: "SAT"
-          app-domain: "sat.qc.ca"
-          app-identifier: "ca.qc.sat.domeportpro"
-          app-description: "Domemaster / equirectangular content visualizer for dome and planetariums in 3D environment"
-          app-copyright: "Société des Arts Technologiques"
-          app-version: "1.0"
-          app-png: "qml/domeportpro/resources/images/DomeportPro.png"
-          app-ico: "qml/domeportpro/resources/images/DomeportPro.ico"
-          app-icns: "qml/domeportpro/resources/images/DomeportPro.icns"
-          # Optional: macOS code signing (requires secrets to be set in repository)
-          macos-certificate-base64: ${{ secrets.MAC_CERT_B64 }}
-          macos-certificate-password: ${{ secrets.MAC_CERT_PASSWORD }}
-          macos-notarize-team-id: ${{ secrets.MAC_NOTARIZE_TEAM_ID }}
-          macos-notarize-apple-id: ${{ secrets.MAC_NOTARIZE_APPLE_ID }}
-          macos-notarize-password: ${{ secrets.MAC_NOTARIZE_PASSWORD }}
-
-      - name: Upload packages
-        uses: actions/upload-artifact@v4
-        with:
           name: domeportpro-${{ matrix.artifact-name }}
-          path: packages/
+          path: ${{ matrix.artifact-path || 'packages/' }}
           retention-days: 30
 
   release:
@@ -122,7 +103,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: all-packages
-          pattern: domeportpro-basic-*
+          pattern: domeportpro-*
           merge-multiple: true
 
       - name: Create Release (on tags)
