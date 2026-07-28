@@ -38,7 +38,7 @@ jobs:
             platform: wasm
             artifact-name: wasm
             target-platform: wasm
-            artifact-path: packages/*.zip
+            artifact-file: '*.zip'
 
     steps:
       - name: Checkout repository
@@ -61,9 +61,10 @@ jobs:
           macos-notarize-apple-id: ${{ secrets.MAC_NOTARIZE_APPLE_ID }}
           macos-notarize-password: ${{ secrets.MAC_NOTARIZE_PASSWORD }}
 
-      - name: Package custom ossia score app
+      - name: Package custom ossia score app (basic)
         uses: ossia/actions/package-custom-app@master
         with:
+          output-path: packages-basic
           app-name: "Domeport Pro"
           qml-files: "qml"
           # Optional: Add your score file here
@@ -88,11 +89,45 @@ jobs:
           macos-notarize-apple-id: ${{ secrets.MAC_NOTARIZE_APPLE_ID }}
           macos-notarize-password: ${{ secrets.MAC_NOTARIZE_PASSWORD }}
 
-      - name: Upload packages
+      - name: Upload packages (basic)
+        uses: actions/upload-artifact@v4
+        with:
+          name: domeportpro-basic-${{ matrix.artifact-name }}
+          path: packages-basic/${{ matrix.artifact-file || '' }}
+          retention-days: 30
+
+      - name: Package custom ossia score app (pro)
+        uses: ossia/actions/package-custom-app@master
+        with:
+          output-path: packages-pro
+          app-name: "Domeport Pro"
+          qml-files: "qml"
+          # Optional: Add your score file here
+          score-file: "score/app.score"
+          score-build-id: ${{ steps.score.outputs.artifact-id }}
+          platforms: "${{ matrix.platform }}"
+          # App metadata
+          app-organization: "SAT"
+          app-domain: "sat.qc.ca"
+          app-identifier: "ca.qc.sat.domeportpro"
+          app-description: "Domemaster / equirectangular content visualizer for dome and planetariums in 3D environment"
+          app-copyright: "Société des Arts Technologiques"
+          app-version: "1.0"
+          app-png: "qml/domeportpro/resources/images/DomeportPro.png"
+          app-ico: "qml/domeportpro/resources/images/DomeportPro.ico"
+          app-icns: "qml/domeportpro/resources/images/DomeportPro.icns"
+          # Optional: macOS code signing (requires secrets to be set in repository)
+          macos-certificate-base64: ${{ secrets.MAC_CERT_B64 }}
+          macos-certificate-password: ${{ secrets.MAC_CERT_PASSWORD }}
+          macos-notarize-team-id: ${{ secrets.MAC_NOTARIZE_TEAM_ID }}
+          macos-notarize-apple-id: ${{ secrets.MAC_NOTARIZE_APPLE_ID }}
+          macos-notarize-password: ${{ secrets.MAC_NOTARIZE_PASSWORD }}
+
+      - name: Upload packages (pro)
         uses: actions/upload-artifact@v4
         with:
           name: domeportpro-${{ matrix.artifact-name }}
-          path: ${{ matrix.artifact-path || 'packages/' }}
+          path: packages-pro/${{ matrix.artifact-file || '' }}
           retention-days: 30
 
   release:
@@ -106,7 +141,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: all-packages
-          pattern: domeportpro-*
+          pattern: domeportpro-basic-*
           merge-multiple: true
 
       - name: Create Release (on tags)
