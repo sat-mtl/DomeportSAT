@@ -18,12 +18,27 @@ jobs:
           - os: ubuntu-latest
             platform: linux-x86_64
             artifact-name: linux-x86_64
+          - os: ubuntu-24.04-arm
+            platform: linux-aarch64
+            artifact-name: linux-aarch64
           - os: macos-latest
             platform: macos-arm
             artifact-name: macos-arm
+          - os: macos-latest
+            platform: macos-intel
+            artifact-name: macos-intel
+            target-arch: x86_64
           - os: windows-latest
             platform: windows
             artifact-name: windows
+          - os: windows-11-arm
+            platform: windows-arm64
+            artifact-name: windows-arm64
+          - os: ubuntu-24.04
+            platform: wasm
+            artifact-name: wasm
+            target-platform: wasm
+            artifact-file: '*.zip'
 
     steps:
       - name: Checkout repository
@@ -35,6 +50,8 @@ jobs:
         id: score
         uses: ossia/actions/custom-score-build@master
         with:
+          target-arch: ${{ matrix.target-arch || '' }}
+          target-platform: ${{ matrix.target-platform || '' }}
           cmake-options: >
             -DSCORE_ENABLED_ADDONS=score-addon-ndi
             -DSCORE_DISABLE_PLUGINS=score-plugin-avnd,score-plugin-clap,score-plugin-controlsurface,score-plugin-faust,score-plugin-jit,score-plugin-lv2,score-plugin-mapping,score-plugin-nodal,score-plugin-packagemanager,score-plugin-pd,score-plugin-recording,score-plugin-remotecontrol,score-plugin-spline,score-plugin-spline3d,score-plugin-threedim,score-plugin-vst,score-plugin-vst3,score-plugin-ysfx
@@ -44,9 +61,10 @@ jobs:
           macos-notarize-apple-id: ${{ secrets.MAC_NOTARIZE_APPLE_ID }}
           macos-notarize-password: ${{ secrets.MAC_NOTARIZE_PASSWORD }}
 
-      - name: Package custom ossia score app
+      - name: Package custom ossia score app (basic)
         uses: ossia/actions/package-custom-app@master
         with:
+          output-path: packages-basic
           app-name: "Domeport Pro"
           qml-files: "qml"
           # Optional: Add your score file here
@@ -71,16 +89,17 @@ jobs:
           macos-notarize-apple-id: ${{ secrets.MAC_NOTARIZE_APPLE_ID }}
           macos-notarize-password: ${{ secrets.MAC_NOTARIZE_PASSWORD }}
 
-      - name: Upload packages
+      - name: Upload packages (basic)
         uses: actions/upload-artifact@v4
         with:
           name: domeportpro-basic-${{ matrix.artifact-name }}
-          path: packages/
+          path: packages-basic/${{ matrix.artifact-file || '' }}
           retention-days: 30
 
-      - name: Package custom ossia score app
+      - name: Package custom ossia score app (pro)
         uses: ossia/actions/package-custom-app@master
         with:
+          output-path: packages-pro
           app-name: "Domeport Pro"
           qml-files: "qml"
           # Optional: Add your score file here
@@ -104,11 +123,11 @@ jobs:
           macos-notarize-apple-id: ${{ secrets.MAC_NOTARIZE_APPLE_ID }}
           macos-notarize-password: ${{ secrets.MAC_NOTARIZE_PASSWORD }}
 
-      - name: Upload packages
+      - name: Upload packages (pro)
         uses: actions/upload-artifact@v4
         with:
           name: domeportpro-${{ matrix.artifact-name }}
-          path: packages/
+          path: packages-pro/${{ matrix.artifact-file || '' }}
           retention-days: 30
 
   release:
