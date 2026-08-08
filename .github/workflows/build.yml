@@ -9,23 +9,27 @@ jobs:
   build:
     name: Package Custom App - ${{ matrix.platform }}
     runs-on: ${{ matrix.os }}
+    container: ${{ matrix.container }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-latest
+          - os: [self-hosted, linux, x64, sat-builder]
+            container: "ubuntu:noble"
             platform: linux-x86_64
             artifact-name: linux-x86_64
           - os: macos-latest
+            container: ""
             platform: macos-arm
             artifact-name: macos-arm
           - os: windows-latest
+            container: ""
             platform: windows
             artifact-name: windows
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           submodules: recursive
 
@@ -56,7 +60,7 @@ jobs:
           macos-notarize-password: ${{ secrets.MAC_NOTARIZE_PASSWORD }}
 
       - name: Upload packages
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: domeportpro-${{ matrix.artifact-name }}
           path: packages/
