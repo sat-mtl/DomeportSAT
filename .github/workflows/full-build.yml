@@ -48,7 +48,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           submodules: recursive
 
@@ -96,7 +96,7 @@ jobs:
           macos-notarize-password: ${{ secrets.MAC_NOTARIZE_PASSWORD }}
 
       - name: Upload packages (basic)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: domeportpro-basic-${{ matrix.artifact-name }}
           path: packages-basic/${{ matrix.artifact-file || '' }}
@@ -130,7 +130,7 @@ jobs:
           macos-notarize-password: ${{ secrets.MAC_NOTARIZE_PASSWORD }}
 
       - name: Upload packages (pro)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: domeportpro-${{ matrix.artifact-name }}
           path: packages-pro/${{ matrix.artifact-file || '' }}
@@ -145,7 +145,7 @@ jobs:
 
     steps:
       - name: Download all artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: all-packages
           pattern: domeportpro-basic-*
