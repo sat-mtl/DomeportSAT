@@ -46,6 +46,7 @@ jobs:
           app-png: "qml/domeportpro/resources/images/DomeportPro.png"
           app-ico: "qml/domeportpro/resources/images/DomeportPro.ico"
           app-icns: "qml/domeportpro/resources/images/DomeportPro.icns"
+          app-environment: environment-pro
           # Optional: macOS code signing (requires secrets to be set in repository)
           macos-certificate-base64: ${{ secrets.MAC_CERT_B64 }}
           macos-certificate-password: ${{ secrets.MAC_CERT_PASSWORD }}
