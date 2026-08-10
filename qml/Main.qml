@@ -638,8 +638,8 @@ Window {
     
     UI.TextureSource {
         id: textureDome
-        width: 4096
-        height: 4096
+        width: 4096 / (root.screen ? root.screen.devicePixelRatio : 1)
+        height: 4096 / (root.screen ? root.screen.devicePixelRatio : 1)
         process: "rotate_zoom"
         port: 0
         visible: false
